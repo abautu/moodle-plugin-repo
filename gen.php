@@ -7,10 +7,19 @@ $packagesfile = __DIR__ . '/packages.json';
 
 $skipcore = in_array('--skip-core', $argv);
 $addcorerequires = in_array('--add-core-requires', $argv);
+$forceupdate = in_array('--force-update', $argv);
 
-if (!file_exists($localapi)) {
-	$pluginlistjson = file_get_contents($api);
-	file_put_contents($localapi, $pluginlistjson);
+if (!file_exists($localapi) || $forceupdate) {
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $api);
+	curl_setopt($ch, CURLOPT_USERAGENT, 'MoodleBot/45 (+http://localhost)');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	// Execute and get response content
+	$pluginlistjson = curl_exec($ch);
+	if ($pluginlistjson) {
+		file_put_contents($localapi, $pluginlistjson);
+	}
 } else {
 	$pluginlistjson = file_get_contents($localapi);
 }
